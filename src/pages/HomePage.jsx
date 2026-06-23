@@ -10,8 +10,11 @@ const BUILDING_FEATURES = [
   {
     icon: '🏛',
     title: 'Historic Architecture',
-    body: 'Built in 1928, El Dorado\'s Spanish Renaissance facade, ornate lobby, and original detailing offer production designers an authentic period backdrop rarely found in working residential buildings.',
+    body: 'Built in 1913, El Dorado\'s Spanish Renaissance facade, ornate lobby, and original detailing offer production designers an authentic period backdrop rarely found in working residential buildings.',
   },
+
+  
+
   {
     icon: '🎬',
     title: 'Multiple Looks, One Address',
@@ -89,7 +92,7 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 pb-20 md:pb-28 w-full">
           <div className="max-w-3xl">
-            <p className="eyebrow text-ed-gold/90 mb-6">Downtown Los Angeles · Est. 1928</p>
+            <p className="eyebrow text-ed-gold/90 mb-6">Downtown Los Angeles · Est. 1913</p>
             <h1 className="font-display text-5xl md:text-7xl lg:text-8xl text-ed-white font-light leading-[1.05] mb-6">
               Film at<br />
               <em className="not-italic text-ed-gold">El Dorado</em><br />
@@ -153,12 +156,12 @@ export default function HomePage() {
             </div>
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80"
+                src="/loft-interior.jpg"
                 alt="El Dorado interior"
                 className="w-full aspect-[3/4] object-cover"
               />
               <div className="absolute -bottom-4 -left-4 bg-ed-gold p-5 hidden md:block">
-                <p className="font-display text-3xl text-ed-black font-light">1928</p>
+                <p className="font-display text-3xl text-ed-black font-light">1913</p>
                 <p className="font-mono text-[9px] uppercase tracking-widest text-ed-dark mt-0.5">Year Built</p>
               </div>
             </div>
