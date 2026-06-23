@@ -12,6 +12,7 @@ import ContactPage from './pages/ContactPage'
 
 // Auth
 import LoginPage from './pages/LoginPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import SignupPage from './pages/SignupPage'
 
 // Homeowner
@@ -54,6 +55,7 @@ export default function App() {
 
       {/* Auth */}
       <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
       {/* Homeowner */}
