@@ -36,7 +36,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="group flex flex-col leading-none">
             <span className="font-display text-ed-gold text-lg md:text-xl font-light tracking-widest uppercase">
-              El Dorado Lofts
+              The El Dorado Lofts
             </span>
             <span className="font-mono text-ed-stone text-[9px] tracking-widest2 uppercase mt-0.5">
               Film Locations
