@@ -9,7 +9,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="font-display text-ed-gold text-2xl font-light tracking-widest uppercase mb-1">
-              El Dorado Lofts
+              The El Dorado Lofts
             </div>
             <div className="font-mono text-[9px] tracking-widest2 uppercase text-ed-stone mb-6">
               Film Locations · Downtown Los Angeles
@@ -41,12 +41,12 @@ export default function Footer() {
           <div>
             <div className="eyebrow mb-5">Building Contact</div>
             <div className="font-body text-xs leading-relaxed text-ed-stone space-y-1">
-              <p>El Dorado Lofts</p>
+              <p>The El Dorado Lofts</p>
               <p>416 S. Spring St.</p>
               <p>Los Angeles, CA 90013</p>
               <p className="pt-3">
-                <a href="mailto:film@eldoradolofts.com" className="hover:text-ed-gold transition-colors">
-                  film@eldoradolofts.com
+                <a href="mailto:manager@eldoradolofts.com" className="hover:text-ed-gold transition-colors">
+                  manager@eldoradolofts.com
                 </a>
               </p>
             </div>
@@ -55,10 +55,12 @@ export default function Footer() {
 
         <div className="border-t border-ed-charcoal mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="font-mono text-[10px] text-ed-stone/60 tracking-wide">
-            © {new Date().getFullYear()} El Dorado Lofts · All filming inquiries subject to building guidelines
+            © {new Date().getFullYear()} The El Dorado Lofts · All filming inquiries subject to building guidelines
           </p>
           <div className="flex gap-6">
-            <Link to="/dashboard" className="font-mono text-[10px] text-ed-stone/60 hover:text-ed-gold transition-colors tracking-wide uppercase">Homeowner Login</Link>
+            <Link to="/dashboard" className="font-mono text-[10px] text-ed-stone/60 hover:text-ed-gold transition-colors tracking-wide uppercase">
+              Homeowner Portal
+            </Link>
           </div>
         </div>
       </div>
