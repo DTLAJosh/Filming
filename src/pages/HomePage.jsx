@@ -4,7 +4,7 @@ import PublicLayout from '../components/layout/PublicLayout'
 import UnitCard from '../components/units/UnitCard'
 import { supabase } from '../lib/supabase'
 
-const HERO_BG = 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1800&q=85'
+const HERO_BG = '/el-dorado-hero.jpg'
 
 const BUILDING_FEATURES = [
   {
