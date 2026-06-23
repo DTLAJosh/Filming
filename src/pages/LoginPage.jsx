@@ -7,6 +7,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [resetSent, setResetSent] = useState(false)
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
@@ -19,6 +20,22 @@ export default function LoginPage() {
       setLoading(false)
     } else {
       navigate('/dashboard')
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Enter your email address above, then click Forgot password.')
+      return
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://glistening-druid-68008e.netlify.app/reset-password',
+    })
+    if (error) {
+      setError(error.message)
+    } else {
+      setResetSent(true)
+      setError(null)
     }
   }
 
@@ -35,7 +52,12 @@ export default function LoginPage() {
           <h1 className="font-display text-2xl text-ed-cream mb-1">Homeowner Login</h1>
           <p className="font-body text-xs text-ed-stone mb-8">Sign in to manage your film location listings.</p>
 
-          {error && (
+          {resetSent && (
+          <p className="text-green-400 text-sm text-center">
+            Password reset email sent — check your inbox.
+          </p>
+        )}
+        {error && (
             <div className="bg-red-900/30 border border-red-800 text-red-300 text-sm px-4 py-3 mb-6 font-body">
               {error}
             </div>
@@ -64,6 +86,13 @@ export default function LoginPage() {
                 placeholder="••••••••"
               />
             </div>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-xs text-ed-stone hover:text-ed-gold transition-colors text-right w-full -mt-2 mb-2"
+            >
+              Forgot password?
+            </button>
             <button
               type="submit"
               disabled={loading}
