@@ -43,7 +43,12 @@ export default function UnitForm({ initialData = {}, onSave, isLoading }) {
     features: Array.isArray(initialData.features) ? initialData.features : [],
   })
 
-  const [photos, setPhotos] = useState([])
+  // New photos queued for upload (not yet saved)
+  const [newPhotos, setNewPhotos] = useState([])
+  // Existing saved photos (with id, image_url, sort_order)
+  const [existingPhotos, setExistingPhotos] = useState(
+    [...(initialData.unit_photos || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+  )
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -70,21 +75,61 @@ export default function UnitForm({ initialData = {}, onSave, isLoading }) {
       for (const file of files) {
         const ext = file.name.split('.').pop()
         const path = `unit-photos/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { error: upErr } = await supabase.storage
-          .from('unit-photos')
-          .upload(path, file)
+        const { error: upErr } = await supabase.storage.from('unit-photos').upload(path, file)
         if (upErr) throw upErr
-        const { data: { publicUrl } } = supabase.storage
-          .from('unit-photos')
-          .getPublicUrl(path)
-        uploaded.push(publicUrl)
+        const { data: { publicUrl } } = supabase.storage.from('unit-photos').getPublicUrl(path)
+        uploaded.push({ url: publicUrl, path })
       }
-      setPhotos(prev => [...prev, ...uploaded])
+      setNewPhotos(prev => [...prev, ...uploaded])
     } catch (err) {
       setError('Photo upload failed: ' + err.message)
     } finally {
       setUploading(false)
     }
+  }
+
+  // --- New photo controls ---
+  const moveNew = (i, dir) => {
+    setNewPhotos(prev => {
+      const arr = [...prev]
+      const j = i + dir
+      if (j < 0 || j >= arr.length) return arr
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+      return arr
+    })
+  }
+
+  const removeNew = async (i) => {
+    const photo = newPhotos[i]
+    // Delete from storage
+    const pathPart = photo.path
+    await supabase.storage.from('unit-photos').remove([pathPart])
+    setNewPhotos(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  // --- Existing photo controls ---
+  const moveExisting = async (i, dir) => {
+    const arr = [...existingPhotos]
+    const j = i + dir
+    if (j < 0 || j >= arr.length) return
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    setExistingPhotos(arr)
+    // Persist new sort_order to DB
+    await Promise.all(arr.map((p, idx) =>
+      supabase.from('unit_photos').update({ sort_order: idx }).eq('id', p.id)
+    ))
+  }
+
+  const removeExisting = async (i) => {
+    const photo = existingPhotos[i]
+    // Extract storage path from URL
+    const url = photo.image_url
+    const pathMatch = url.match(/unit-photos/(.+)$/)
+    if (pathMatch) {
+      await supabase.storage.from('unit-photos').remove([pathMatch[1]])
+    }
+    await supabase.from('unit_photos').delete().eq('id', photo.id)
+    setExistingPhotos(prev => prev.filter((_, idx) => idx !== i))
   }
 
   const handleSubmit = async (e, statusOverride) => {
@@ -99,8 +144,39 @@ export default function UnitForm({ initialData = {}, onSave, isLoading }) {
       status: statusOverride || form.status,
       features: form.features,
     }
-    await onSave(payload, photos)
+    await onSave(payload, newPhotos.map(p => p.url))
   }
+
+  const PhotoCard = ({ url, index, total, onMoveUp, onMoveDown, onRemove }) => (
+    <div className="relative group">
+      <img src={url} alt="" className="aspect-video object-cover w-full" />
+      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={onMoveUp}
+          disabled={index === 0}
+          className="w-8 h-8 bg-white/80 hover:bg-white text-ed-black disabled:opacity-30 flex items-center justify-center text-sm font-bold"
+          title="Move left"
+        >↑</button>
+        <button
+          type="button"
+          onClick={onMoveDown}
+          disabled={index === total - 1}
+          className="w-8 h-8 bg-white/80 hover:bg-white text-ed-black disabled:opacity-30 flex items-center justify-center text-sm font-bold"
+          title="Move right"
+        >↓</button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="w-8 h-8 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center text-sm font-bold"
+          title="Delete photo"
+        >×</button>
+      </div>
+      <div className="absolute top-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 font-mono">
+        {index + 1}
+      </div>
+    </div>
+  )
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -275,33 +351,58 @@ export default function UnitForm({ initialData = {}, onSave, isLoading }) {
 
       {/* Photos */}
       <section className="bg-white p-6 border border-ed-cream">
-        <h3 className="font-display text-xl mb-5 text-ed-black">Photos</h3>
-        <p className="font-body text-sm text-ed-mid mb-4">Upload photos of your unit. High-resolution landscape images work best.</p>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handlePhotoUpload}
-          className="font-body text-sm text-ed-mid"
-        />
-        {uploading && <p className="font-body text-sm text-ed-gold mt-2">Uploading…</p>}
-        {photos.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 mt-4">
-            {photos.map((url, i) => (
-              <img key={i} src={url} alt="" className="aspect-video object-cover w-full" />
-            ))}
-          </div>
-        )}
-        {initialData.unit_photos?.length > 0 && (
-          <div className="mt-4">
-            <p className="font-body text-xs text-ed-stone uppercase tracking-widest mb-2">Existing Photos</p>
+        <h3 className="font-display text-xl mb-1 text-ed-black">Photos</h3>
+        <p className="font-body text-sm text-ed-mid mb-4">Hover over a photo to reorder or delete it. The first photo is the cover image.</p>
+
+        {existingPhotos.length > 0 && (
+          <div className="mb-5">
+            <p className="font-body text-xs text-ed-stone uppercase tracking-widest mb-2">Saved Photos</p>
             <div className="grid grid-cols-3 gap-3">
-              {initialData.unit_photos.map(p => (
-                <img key={p.id} src={p.image_url} alt={p.caption || ''} className="aspect-video object-cover w-full" />
+              {existingPhotos.map((p, i) => (
+                <PhotoCard
+                  key={p.id}
+                  url={p.image_url}
+                  index={i}
+                  total={existingPhotos.length}
+                  onMoveUp={() => moveExisting(i, -1)}
+                  onMoveDown={() => moveExisting(i, 1)}
+                  onRemove={() => removeExisting(i)}
+                />
               ))}
             </div>
           </div>
         )}
+
+        {newPhotos.length > 0 && (
+          <div className="mb-5">
+            <p className="font-body text-xs text-ed-stone uppercase tracking-widest mb-2">New Photos (not yet saved)</p>
+            <div className="grid grid-cols-3 gap-3">
+              {newPhotos.map((p, i) => (
+                <PhotoCard
+                  key={p.url}
+                  url={p.url}
+                  index={i}
+                  total={newPhotos.length}
+                  onMoveUp={() => moveNew(i, -1)}
+                  onMoveDown={() => moveNew(i, 1)}
+                  onRemove={() => removeNew(i)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className="font-body text-sm text-ed-mid mb-2 block">Add Photos</label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handlePhotoUpload}
+            className="font-body text-sm text-ed-mid"
+          />
+          {uploading && <p className="font-body text-sm text-ed-gold mt-2">Uploading…</p>}
+        </div>
       </section>
 
       {/* Actions */}
