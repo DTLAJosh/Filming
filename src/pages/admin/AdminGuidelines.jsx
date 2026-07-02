@@ -2,13 +2,14 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
+import { DEFAULT_GUIDELINES_MARKDOWN, DEFAULT_GUIDELINES_TITLE } from '../../data/guidelines'
 
 export default function AdminGuidelines() {
   const { user } = useAuth()
   const contentRef = useRef(null)
   const [guideline, setGuideline] = useState(null)
   const [content, setContent] = useState('')
-  const [title, setTitle] = useState('Filming Guidelines')
+  const [title, setTitle] = useState(DEFAULT_GUIDELINES_TITLE)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -17,8 +18,11 @@ export default function AdminGuidelines() {
       .then(({ data }) => {
         if (data) {
           setGuideline(data)
-          setContent(data.content || '')
-          setTitle(data.title || 'Filming Guidelines')
+          setContent(data.content || DEFAULT_GUIDELINES_MARKDOWN)
+          setTitle(data.title || DEFAULT_GUIDELINES_TITLE)
+        } else {
+          setContent(DEFAULT_GUIDELINES_MARKDOWN)
+          setTitle(DEFAULT_GUIDELINES_TITLE)
         }
       })
   }, [])
@@ -68,7 +72,21 @@ export default function AdminGuidelines() {
             <input className="form-input" value={title} onChange={e => setTitle(e.target.value)} />
           </div>
           <div>
-            <label className="form-label">Content (Markdown supported)</label>
+            <div className="flex items-center justify-between gap-4 mb-1.5">
+              <label className="form-label mb-0">Content (Markdown supported)</label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Replace the editor content with the full default guidelines copy?')) {
+                    setTitle(DEFAULT_GUIDELINES_TITLE)
+                    setContent(DEFAULT_GUIDELINES_MARKDOWN)
+                  }
+                }}
+                className="font-body text-[10px] uppercase tracking-widest text-ed-gold hover:underline"
+              >
+                Restore full default copy
+              </button>
+            </div>
             <textarea
               ref={contentRef}
               className="form-input min-h-[max(640px,calc(100vh-260px))] resize-y overflow-hidden font-mono text-sm leading-6"
