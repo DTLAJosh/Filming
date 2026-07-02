@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import AdminLayout from '../../components/layout/AdminLayout'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 
 export default function AdminGuidelines() {
   const { user } = useAuth()
+  const contentRef = useRef(null)
   const [guideline, setGuideline] = useState(null)
   const [content, setContent] = useState('')
   const [title, setTitle] = useState('Filming Guidelines')
@@ -21,6 +22,13 @@ export default function AdminGuidelines() {
         }
       })
   }, [])
+
+  useLayoutEffect(() => {
+    if (!contentRef.current) return
+
+    contentRef.current.style.height = 'auto'
+    contentRef.current.style.height = `${contentRef.current.scrollHeight}px`
+  }, [content])
 
   const save = async () => {
     setSaving(true)
@@ -54,7 +62,7 @@ export default function AdminGuidelines() {
           </div>
         </div>
 
-        <div className="space-y-5 max-w-3xl">
+        <div className="space-y-5 max-w-6xl">
           <div>
             <label className="form-label">Page Title</label>
             <input className="form-input" value={title} onChange={e => setTitle(e.target.value)} />
@@ -62,7 +70,8 @@ export default function AdminGuidelines() {
           <div>
             <label className="form-label">Content (Markdown supported)</label>
             <textarea
-              className="form-input min-h-[600px] resize-y font-mono text-sm"
+              ref={contentRef}
+              className="form-input min-h-[max(640px,calc(100vh-260px))] resize-y overflow-hidden font-mono text-sm leading-6"
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="## Building Approval Process&#10;&#10;All filming requires…"
